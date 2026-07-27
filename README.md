@@ -2,6 +2,8 @@
 
 This Jupyter Notebook will walk you through how to replot the output (spectra and fits) of the NuCrossARF routines (https://github.com/danielrwik/nucrossarf) to seperate out individual regions and look at the individual fits.
 
+There is also a script version in 'Script_Version' if you prefer running scripts instead of a Jupyter Notebook.
+
 
 You'll go from this:
 <img width="1136" alt="exampleOld" src="https://github.com/user-attachments/assets/b77ab591-2ede-4332-9cf8-b9f3b3546bcd" />

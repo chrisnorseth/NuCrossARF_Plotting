@@ -1,0 +1,40 @@
+### PATHS ###
+nustar_dir = "/Users/christiannorseth/GradResearch/CrossARFRuns"
+crossarf_dir = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5"
+
+saved_xcm_script = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5/fit_6_29_26.xcm"
+
+
+### REGION INFORMATION ###
+obsids = ["70401001002"]
+reg_base = "reg"
+num_reg = 14
+regs_to_include_in_plot = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+
+
+### SPECTRA INFORMATION
+binning = "5 12"
+e_low = 3.0
+e_high = 20.0
+
+
+### PLOT PREFERENCES ###
+plot_size = [8,8]
+spaced_spectra = True
+
+# plot y limits 
+spectra_y_lim_lower = 1e-16
+spectra_y_lim_upper = 2e-2
+
+# ratio plot y limits
+ratio_y_lim_lower = 0.0
+ratio_y_lim_upper = 2.0
+
+# color map
+plot_color_map = 'turbo'
+
+
+
+### PLOT SAVING ###
+save_plot = True
+plot_output_path = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5"
