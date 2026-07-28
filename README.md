@@ -8,7 +8,7 @@ There is also a new set of scripts in 'Plot_All_Model_Contributions', which will
 
 
 You'll go from this:
-<img width="1136" alt="exampleOld" src="https://github.com/user-attachments/assets/b77ab591-2ede-4332-9cf8-b9f3b3546bcd" />
+<img width="700" alt="exampleOld" src="https://github.com/user-attachments/assets/b77ab591-2ede-4332-9cf8-b9f3b3546bcd" />
 
 to this:
 
