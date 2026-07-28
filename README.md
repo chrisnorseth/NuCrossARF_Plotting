@@ -1,8 +1,8 @@
 # NuCrossARF Plotting
 
-This Jupyter Notebook will walk you through how to replot the output (spectra and fits) of the NuCrossARF routines (https://github.com/danielrwik/nucrossarf) to seperate out individual regions and look at the individual fits.
+This Jupyter Notebook (or scripts version) will walk you through how to replot the output (spectra and fits) of the NuCrossARF routines (https://github.com/danielrwik/nucrossarf) to seperate out individual regions and look at the individual fits.
 
-There is also a script version in 'Script_Version' if you prefer running scripts instead of a Jupyter Notebook.
+There is a script version in 'Script_Version' if you prefer running scripts instead of a Jupyter Notebook.
 
 There is also a new set of scripts in 'Plot_All_Model_Contributions', which will plot each model contribution for a single region.
 
@@ -12,5 +12,7 @@ You'll go from this:
 
 to this:
 
+<img width="700" alt="A2146 example" src="example_plots/2146_AandB.png" />
 
-<img width="698" alt="Screenshot 2025-04-07 at 2 04 49 PM" src="https://github.com/user-attachments/assets/e9600254-1789-4128-9ae8-b806a4f72d59" />
+
+
