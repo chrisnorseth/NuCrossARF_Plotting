@@ -15,5 +15,6 @@ to this:
 
 <img width="700" alt="A2146 example" src="example_plots/2146_AandB.png" />
 
+and optionally:
 
-
+<img width="300" alt="A2146 example" src="example_plots/2146_A2_all_models.png" />
