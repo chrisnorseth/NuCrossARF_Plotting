@@ -31,7 +31,7 @@ To run, make sure you are in a heasoft environment (i.e. a terminal where you co
 
 `python stepOne_makeFiles.py config.txt`
 
-This script will launch xspec, load your fit, and sequentially save each spectrum and total model into a save file. It will also create a 'Plotting_Directory' inside of your 'crossarf_dir', where it will store all of the information. If you need to run it again (e.g. you want to change the binning), it will overwrite the previous run.
+This script will launch xspec, load your fit, and save each spectrum and total model into a save file. It will also create a 'Plotting_Directory' inside of your 'crossarf_dir', where it will store all of the information. If you need to run it again (e.g. you want to change the binning), it will overwrite the previous run.
 
 ### Step Two: (Make the Plots)
 
@@ -48,12 +48,14 @@ This script will load in the saved plotting information and produce two plots; a
 ## Configuration File Description
 A config.txt file is used across the two steps to provide relevant paths and parameters. An example config.txt file is located in this directory and can be edited directly. An in-depth description of each parameter can be found below:
 
-- Full Paths
+- Paths
     - 'nustar_dir': The directory where your cluster is located. 
-        - Following tradition, the organization will look like: 'nustar_dir/cluster/crossarf_dir', where 'crossarf_dir' is the output from running nucrossarf and will contain an obsid directory with all of the files.
+        - Following tradition, the organization will look like: 'nustar_dir/cluster/crossarf_dir', where 'crossarf_dir' is the output from running nucrossarf and will contain an obsid directory with all of the files. This is also the directory where your saved xcm file is meant to be run from.
         - e.g. 'nustar_dir = "/Users/christiannorseth/GradResearch/CrossARFRuns"'
+    - 'cluster': The directory for your cluster, inside of nustar_dir, with crossarf_dir inside of it.
+        - e.g. 'cluster = "Abell2146"'
     - 'crossarf_dir': The output directory from running nucrossarf.
-        - e.g. 'crossarf_dir = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5"'
+        - e.g. 'crossarf_dir = "crossarf_trial5"'
     - 'saved_xcm_script': The path to your saved xcm script from running 'save all' in your xspec run.
         - e.g. 'saved_xcm_script = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5/fit_6_29_26.xcm"'
 

@@ -38,5 +38,5 @@ plot_color_map = 'turbo'
 
 
 ### PLOT SAVING ###
-save_plot = True
+save_plot = False
 plot_output_path = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5"

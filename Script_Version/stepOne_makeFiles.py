@@ -43,8 +43,10 @@ def getValue(type, search_string, equator, message):
 
 ### Read in all Info ###
 ### PATHS ###
-crossarf_dir = getValue(str, 'crossarf_dir', '=', 'crossarf run directory')
 nustar_dir = getValue(str, 'nustar_dir', '=', 'cluster parent directory')
+cluster = getValue(str, 'cluster', '=', 'cluster dir only')
+crossarf_dir_only = getValue(str, 'crossarf_dir', '=', 'crossarf run directory only')
+crossarf_dir = f'{nustar_dir}/{cluster}/{crossarf_dir_only}'
 
 ### REGION INFORMATION ###
 obsids = getValue(list, 'obsids', '=', 'obsids')
@@ -69,12 +71,10 @@ num_obsids = len(obsids)
 
 # Automatically make a directory to store intermediary files
 plotting_directory = f"{crossarf_dir}/Plotting_Stuff"
+plotting_directory_from_nustar_dir = f"{cluster}/{crossarf_dir_only}/Plotting_Stuff"
 if os.path.exists(plotting_directory) == False:
     # create the cluster directory
     os.makedirs(plotting_directory)
-# else:
-#     # OR overwrite it by deleting it if you're running again
-#     shutil.rmtree(plotting_directory)
 
 
 # automatically copy the saved script over
@@ -90,104 +90,39 @@ for file in files:
     if os.path.exists(full_path):
         os.remove(full_path)
 
-# run everything
-for obs in range(num_obsids):
-    factor = num_reg * obs * 2
-    for r in range(factor,num_reg*2+factor):
-        reg = r+1
     
-        det = 'A'
-        if reg > num_reg + factor:
-            det = 'B'
-        print(reg)
+# load and setup the script
+lines = []
+# load script
+lines.append(f'@{plotting_directory}/saved_run.xcm\n')
 
-        # load and setup the script
-        lines = []
-        # load script
-        lines.append(f'@{plotting_directory}/saved_run.xcm\n')
+# plotting step
+lines.append('notice all\n')
+lines.append(f'ignore **:**-{e_low-1.0} {e_high+1.0}-**\n')
+plotting_com = ['cpd /xs\n', 'setpl e\n', 'pl ld\n', f'setpl rebin {binning}\n']
+lines.extend(plotting_com)
 
-        # plotting step
-        lines.append('notice all\n')
-        lines.append(f'ignore **:**-{e_low-1.0} {e_high+1.0}-**\n')
-        plotting_com = ['cpd /xs\n', 'setpl e\n', 'pl ld\n', f'setpl rebin {binning}\n']
-        lines.extend(plotting_com)
-        
+# wdata save lines
+wdata_coms = [f'setpl com wdata {plotting_directory_from_nustar_dir}/save.dat\n', 'pl\n']
+lines.extend(wdata_coms)
 
-        # step one (remove spectra):
-        # for 1st reg, remove all data above it
-        if reg == 1:
-            lines.append('data 2 none\n')
-        else:
-        # for the rest, remove all data below and above it
-            # below
-            for k in range(reg-1):
-                lines.append('data 1 none/\n')
-            # above (its now data 1)
-            lines.append('data 2 none\n')
+# now save ratios
+ratio_coms = ['setpl delete all\n', f'setpl com wdata {plotting_directory_from_nustar_dir}/save_ratios.dat\n', 'pl ra\n', 'exit\n']
+lines.extend(ratio_coms)
 
-        # step two (turn model colors off):
-        for k in range((num_reg*num_obsids+1)*2):
-            n = k+1
-            lines.append(f'setpl com co off on {n}\n')
-        lines.append('setpl com co 1 on 1\n')
-        lines.append('setpl com co 2 on 2\n')
-        lines.append('pl\n')
 
-        # step three (save everything)
-        save_commands = [f'set filename "{plotting_directory}/save.dat"\n',
-                        'set fileid [open $filename a]\n',
-                        f'puts $fileid "Reg{det}{reg} x, xerr, y, yerr, model"\n',
-                        'tclout plot ldata x\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'tclout plot ldata xerr\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'tclout plot ldata y\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'tclout plot ldata yerr\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'tclout plot ldata model\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'close $fileid\n'
-                        ]
-        lines.extend(save_commands)
+# write it in an xcm file
+with open(f'{plotting_directory}/color_script.xcm', 'w') as file:
+    file.writelines(lines)
 
-        # step four (redo for ratios)
-        lines.append('pl ra\n')
-        # - turn model colors off
-        for k in range((num_reg*num_obsids+1)*2):
-            n = k+1
-            lines.append(f'setpl com co off on {n}\n')
-        lines.append('setpl com co 1 on 1\n')
-        lines.append('pl\n')
-        # - save info
-        save_commands = [f'set filename "{plotting_directory}/save_ratios.dat"\n',
-                        'set fileid [open $filename a]\n',
-                        f'puts $fileid "Reg{det}{reg} x, xerr, y, yerr"\n',
-                        'tclout plot ra x\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'tclout plot ra xerr\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'tclout plot ra y\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'tclout plot ra yerr\n',
-                        'puts $fileid $xspec_tclout\n',
-                        'close $fileid\n',
-                        'exit\n'
-                        ]
-        lines.extend(save_commands)
-
-        # write it in an xcm file
-        with open(f'{plotting_directory}/color_script.xcm', 'w') as file:
-            file.writelines(lines)
-
-        # run it as bash
-        bash_lines = ["#!/bin/bash\n"]
-        bash_lines.extend([f'cd {nustar_dir}\n', f'xspec - {plotting_directory}/color_script.xcm'])
-        with open(f'{plotting_directory}/bash_runner.sh', 'w') as file:
-            file.writelines(bash_lines)
-        subprocess.run(f"chmod u+x {plotting_directory}/bash_runner.sh", shell=True)
-        subprocess.call(f"{plotting_directory}/bash_runner.sh")
-        subprocess.run(f'rm {plotting_directory}/bash_runner.sh', text=True, shell=True)
+# run it as bash file
+bash_lines = ["#!/bin/bash\n"]
+bash_lines.extend([f'cd {nustar_dir}\n', f'xspec - {plotting_directory}/color_script.xcm'])
+with open(f'{plotting_directory}/bash_runner.sh', 'w') as file:
+    file.writelines(bash_lines)
+subprocess.run(f"chmod u+x {plotting_directory}/bash_runner.sh", shell=True)
+subprocess.call(f"{plotting_directory}/bash_runner.sh")
+subprocess.run(f'rm {plotting_directory}/bash_runner.sh', text=True, shell=True)
 
 
 print('Done!')

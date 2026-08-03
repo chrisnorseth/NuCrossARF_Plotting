@@ -44,8 +44,10 @@ def getValue(type, search_string, equator, message):
 
 ### Read in all Info ###
 ### PATHS ###
-crossarf_dir = getValue(str, 'crossarf_dir', '=', 'crossarf run directory')
 nustar_dir = getValue(str, 'nustar_dir', '=', 'cluster parent directory')
+cluster = getValue(str, 'cluster', '=', 'cluster dir only')
+crossarf_dir_only = getValue(str, 'crossarf_dir', '=', 'crossarf run directory only')
+crossarf_dir = f'{nustar_dir}/{cluster}/{crossarf_dir_only}'
 
 ### REGION INFORMATION ###
 obsids = getValue(list, 'obsids', '=', 'obsids')
@@ -99,70 +101,86 @@ color_map = plot_color_map #'turbo'
 saved_plot_info = f'{plotting_directory}/save.dat'
 lines = []
 with open(saved_plot_info) as file:
+    # skip first 3 lines
+    i = 0
     for line in file:
-        lines.append(line)
+        if i > 2:
+            lines.append(line)
+        i += 1
 
+# check if lines overflowed
+proper_lines = []
+idx = 0
+while idx <= len(lines)-1:
+    line = lines[idx]
+    if line.endswith("-\n"):
+        top = line.split("-\n")[0]
+        bottom = lines[idx+1].split("  ")[1]
+        new_line = f"{top} {bottom}"
+        proper_lines.append(new_line)
+        idx += 2
+    else:
+        proper_lines.append(line)
+        idx += 1
+
+# organize data into dic
 regions = {i:{o:{'A':{}, 'B':{}} for o in range(1,num_obsids+1)} for i in range(1,num_reg+1)}
-for idx,line in enumerate(lines):
-    if 'RegA' in line:
-        num = line.split('RegA')[1].split(' ')[0]
-        num = int(num)
 
-        obs = 1
-        if num > num_reg:
-            num = num - num_reg*num_obsids
-            obs = 2
+# first grab all the lines in-between the NO NO NO
+# order is same as data - obs1A, obs1B, obs2A, obs2B
+proper_lines.append('NO\n') # added so the loop always adds whats above the NOs
+r = 1
+o = 1
+d = 'A'
+line_collection = []
+for line in proper_lines:
+    if 'NO' in line:
+        if r > num_reg:
+            if d == 'A':
+                d = 'B'
+            else:
+                d = 'A'
+                o += 1
+            r = 1
+        regions[r][o][d]['raw_data'] = line_collection       
+        line_collection = []
+        r += 1
+        continue
+    else:
+        line_collection.append(line)
 
-        x_line = lines[idx+1]
-        x = [float(val) for val in x_line.split('\n')[0].split('   ')[:-1]]
+# go through each set and seperate into arrays
+for i in regions:
+    for o in regions[i]:
+        for det in regions[i][o]:
+            raw_data = regions[i][o][det]['raw_data']
+            xs = []
+            ys = []
+            xerrs = []
+            yerrs = []
+            model = []
+            for line in raw_data:
+                vals = line.split(' ')
 
-        xerr_line = lines[idx+2]
-        xerr = [(float(val), float(val)) for val in xerr_line.split('\n')[0].split('   ')[:-1]]
+                x = float(vals[0])
+                xerr = float(vals[1])
+                y = float(vals[2])
+                yerr = float(vals[3])
+                mod_tot = float(vals[4])
 
-        y_line = lines[idx+3]
-        y = [float(val) for val in y_line.split('\n')[0].split('   ')[:-1]]
-        
-        yerr_line = lines[idx+4]
-        yerr = [(float(val), float(val)) for val in yerr_line.split('\n')[0].split('   ')[:-1]]
+                xs.append(x)
+                xerrs.append((xerr,xerr))
+                ys.append(y)
+                yerrs.append((yerr,yerr))
+                model.append(mod_tot)
 
-        model_line = lines[idx+5]
-        model = [float(val) for val in model_line.split('\n')[0].split('   ')[:-1]]
-
-        regions[num][obs]['A'] = {'x': x,
-                        'xerr': xerr,
-                        'y': y,
-                        'yerr': yerr,
-                        'model': model}
-    elif 'RegB' in line:
-        num = line.split('RegB')[1].split(' ')[0]
-        num = int(num) - num_reg
-
-        obs = 1
-        if num > num_reg:
-            num = num - num_reg*num_obsids
-            obs = 2
-        
-        x_line = lines[idx+1]
-        x = [float(val) for val in x_line.split('\n')[0].split('   ')[:-1]]
-
-        xerr_line = lines[idx+2]
-        xerr = [(float(val), float(val)) for val in xerr_line.split('\n')[0].split('   ')[:-1]]
-
-        y_line = lines[idx+3]
-        y = [float(val) for val in y_line.split('\n')[0].split('   ')[:-1]]
-        
-        yerr_line = lines[idx+4]
-        yerr = [(float(val), float(val)) for val in yerr_line.split('\n')[0].split('   ')[:-1]]
-
-        model_line = lines[idx+5]
-        model = [float(val) for val in model_line.split('\n')[0].split('   ')[:-1]]
-
-        regions[num][obs]['B'] = {'x': x,
-                        'xerr': xerr,
-                        'y': y,
-                        'yerr': yerr,
-                        'model': model}
-
+            regions[i][o][det] = {
+                'x': xs,
+                'xerr': xerrs,
+                'y': ys,
+                'yerr': yerrs,
+                'model': model
+                }
 
 # Defining the plot things will be added to
 plt.rcParams["figure.figsize"] = plot_size
@@ -273,7 +291,7 @@ for det in range(2):
         plot.xaxis.set_major_formatter(ticker.FuncFormatter(lambda val, pos: '{:.0f}'.format(val)))
         plot.xaxis.set_major_locator(ticker.FixedLocator([5, 10, 15]))
         plot.xaxis.set_minor_locator(ticker.NullLocator())  # Suppress minor ticks
-        plot.set(title=f'{obsids[obs]}:{'A' if det==0 else 'B'}')
+        plot.set(title=f"{obsids[obs]}:{'A' if det==0 else 'B'}")
         plot.set(ylim=spectra_y_lims)
 
 
@@ -286,61 +304,82 @@ for det in range(2):
 saved_plot_info = f'{plotting_directory}/save_ratios.dat'
 lines = []
 with open(saved_plot_info) as file:
+    # skip first 3 lines
+    i = 0
     for line in file:
-        lines.append(line)
+        if i > 2:
+            lines.append(line)
+        i += 1
 
+# check if lines overflowed
+proper_lines = []
+idx = 0
+while idx <= len(lines)-1:
+    line = lines[idx]
+    if line.endswith("-\n"):
+        top = line.split("-\n")[0]
+        bottom = lines[idx+1].split("  ")[1]
+        new_line = f"{top} {bottom}"
+        proper_lines.append(new_line)
+        idx += 2
+    else:
+        proper_lines.append(line)
+        idx += 1
+
+# organize data into dic
 regions = {i:{o:{'A':{}, 'B':{}} for o in range(1,num_obsids+1)} for i in range(1,num_reg+1)}
-for idx,line in enumerate(lines):
-    if 'RegA' in line:
-        num = line.split('RegA')[1].split(' ')[0]
-        num = int(num)
 
-        obs = 1
-        if num > num_reg:
-            num = num - num_reg*num_obsids
-            obs = 2
+# first grab all the lines in-between the NO NO NO
+# order is same as data - obs1A, obs1B, obs2A, obs2B
+proper_lines.append('NO\n') # added so the loop always adds whats above the NOs
+r = 1
+o = 1
+d = 'A'
+line_collection = []
+for line in proper_lines:
+    if 'NO' in line:
+        if r > num_reg:
+            if d == 'A':
+                d = 'B'
+            else:
+                d = 'A'
+                o += 1
+            r = 1
+        regions[r][o][d]['raw_data'] = line_collection       
+        line_collection = []
+        r += 1
+        continue
+    else:
+        line_collection.append(line)
 
-        x_line = lines[idx+1]
-        x = [float(val) for val in x_line.split('\n')[0].split('   ')[:-1]]
+# go through each set and seperate into arrays
+for i in regions:
+    for o in regions[i]:
+        for det in regions[i][o]:
+            raw_data = regions[i][o][det]['raw_data']
+            xs = []
+            ys = []
+            xerrs = []
+            yerrs = []
+            for line in raw_data:
+                vals = line.split(' ')
 
-        xerr_line = lines[idx+2]
-        xerr = [(float(val), float(val)) for val in xerr_line.split('\n')[0].split('   ')[:-1]]
+                x = float(vals[0])
+                xerr = float(vals[1])
+                y = float(vals[2])
+                yerr = float(vals[3].strip())
 
-        y_line = lines[idx+3]
-        y = [float(val) for val in y_line.split('\n')[0].split('   ')[:-1]]
-        
-        yerr_line = lines[idx+4]
-        yerr = [(float(val), float(val)) for val in yerr_line.split('\n')[0].split('   ')[:-1]]
+                xs.append(x)
+                xerrs.append((xerr,xerr))
+                ys.append(y)
+                yerrs.append((yerr,yerr))
 
-        regions[num][obs]['A'] = {'x': x,
-                        'xerr': xerr,
-                        'y': y,
-                        'yerr': yerr}
-    elif 'RegB' in line:
-        num = line.split('RegB')[1].split(' ')[0]
-        num = int(num) - num_reg
-
-        obs = 1
-        if num > num_reg:
-            num = num - num_reg*num_obsids
-            obs = 2
-
-        x_line = lines[idx+1]
-        x = [float(val) for val in x_line.split('\n')[0].split('   ')[:-1]]
-
-        xerr_line = lines[idx+2]
-        xerr = [(float(val), float(val)) for val in xerr_line.split('\n')[0].split('   ')[:-1]]
-
-        y_line = lines[idx+3]
-        y = [float(val) for val in y_line.split('\n')[0].split('   ')[:-1]]
-        
-        yerr_line = lines[idx+4]
-        yerr = [(float(val), float(val)) for val in yerr_line.split('\n')[0].split('   ')[:-1]]
-
-        regions[num][obs]['B'] = {'x': x,
-                        'xerr': xerr,
-                        'y': y,
-                        'yerr': yerr}
+            regions[i][o][det] = {
+                'x': xs,
+                'xerr': xerrs,
+                'y': ys,
+                'yerr': yerrs
+                }
 
 
 # Defining the plot things will be added to

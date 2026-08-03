@@ -1,21 +1,24 @@
 ### PATHS ###
 nustar_dir = "/Users/christiannorseth/GradResearch/CrossARFRuns"
-crossarf_dir = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5"
 
-saved_xcm_script = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5/fit_6_29_26.xcm"
+# assuming path structure: nustar_dir/cluster/crossarf_dir
+cluster = "Abell_523"
+crossarf_dir = "arfRun3"
+
+saved_xcm_script = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell_523/arfRun3/saved_fit.xcm"
 
 
 ### REGION INFORMATION ###
-obsids = ["70401001002"]
-reg_base = "reg"
-num_reg = 14
-regs_to_include_in_plot = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+obsids = ["70102001002", "70102001004"]
+reg_base = "arfRun3Reg"
+num_reg = 2
+regs_to_include_in_plot = [1,2]
 
 
 ### SPECTRA INFORMATION
-binning = "5 12"
+binning = "10 20"
 e_low = 3.0
-e_high = 20.0
+e_high = 25.0
 
 
 ### PLOT PREFERENCES ###
@@ -23,7 +26,7 @@ plot_size = [8,8]
 spaced_spectra = True
 
 # plot y limits 
-spectra_y_lim_lower = 1e-16
+spectra_y_lim_lower = 1e-7
 spectra_y_lim_upper = 2e-2
 
 # ratio plot y limits
@@ -36,5 +39,5 @@ plot_color_map = 'turbo'
 
 
 ### PLOT SAVING ###
-save_plot = True
-plot_output_path = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell2146/crossarf_trial5"
+save_plot = False
+plot_output_path = "/Users/christiannorseth/GradResearch/CrossARFRuns/Abell_523/arfRun3"
